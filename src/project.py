@@ -56,23 +56,80 @@ class ArtifactBST:
         Return True if the artifact was inserted.
         Return False if an artifact with the same ID already exists.
         """
-        raise NotImplementedError
+        if self.root is None:
+            self.root = TreeNode(artifact)
+            return True
+        return self._insert_recursive(self.root, artifact)
+
+    def _insert_recursive(self, node: TreeNode, artifact: Artifact) -> bool:
+        if artifact.artifact_id == node.artifact.artifact_id:
+            # Duplicate: ignore and return False
+            return False
+        elif artifact.artifact_id < node.artifact.artifact_id:
+            if node.left is None:
+                node.left = TreeNode(artifact)
+                return True
+            else:
+                return self._insert_recursive(node.left, artifact)
+        else:
+            if node.right is None:
+                node.right = TreeNode(artifact)
+                return True
+            else:
+                return self._insert_recursive(node.right, artifact)
 
     def search_by_id(self, artifact_id: int) -> Artifact | None:
         """Return the matching artifact, or None if it does not exist."""
-        raise NotImplementedError
+        return self._search_recursive(self.root, artifact_id)
+
+    def _search_recursive(self, node: TreeNode | None, artifact_id: int) -> Artifact | None:
+        if node is None:
+            return None
+        if artifact_id == node.artifact.artifact_id:
+            return node.artifact
+        elif artifact_id < node.artifact.artifact_id:
+            return self._search_recursive(node.left, artifact_id)
+        else:
+            return self._search_recursive(node.right, artifact_id)
 
     def inorder_ids(self) -> list[int]:
-        """Return a list of artifact IDs using inorder traversal."""
-        raise NotImplementedError
+        """Return a list of artifact IDs using inorder traversal (left, root, right)."""
+        result: list[int] = []
+        self._inorder_recursive(self.root, result)
+        return result
+
+    def _inorder_recursive(self, node: TreeNode | None, result: list[int]) -> None:
+        if node is None:
+            return
+        self._inorder_recursive(node.left, result)
+        result.append(node.artifact.artifact_id)
+        self._inorder_recursive(node.right, result)
 
     def preorder_ids(self) -> list[int]:
-        """Return a list of artifact IDs using preorder traversal."""
-        raise NotImplementedError
+        """Return a list of artifact IDs using preorder traversal (root, left, right)."""
+        result: list[int] = []
+        self._preorder_recursive(self.root, result)
+        return result
+
+    def _preorder_recursive(self, node: TreeNode | None, result: list[int]) -> None:
+        if node is None:
+            return
+        result.append(node.artifact.artifact_id)
+        self._preorder_recursive(node.left, result)
+        self._preorder_recursive(node.right, result)
 
     def postorder_ids(self) -> list[int]:
-        """Return a list of artifact IDs using postorder traversal."""
-        raise NotImplementedError
+        """Return a list of artifact IDs using postorder traversal (left, right, root)."""
+        result: list[int] = []
+        self._postorder_recursive(self.root, result)
+        return result
+
+    def _postorder_recursive(self, node: TreeNode | None, result: list[int]) -> None:
+        if node is None:
+            return
+        self._postorder_recursive(node.left, result)
+        self._postorder_recursive(node.right, result)
+        result.append(node.artifact.artifact_id)
 
 
 class RestorationQueue:
@@ -83,23 +140,27 @@ class RestorationQueue:
 
     def add_request(self, request: RestorationRequest) -> None:
         """Add a request to the back of the queue."""
-        raise NotImplementedError
+        self._items.append(request)
 
     def process_next_request(self) -> RestorationRequest | None:
         """Remove and return the next request, or None if the queue is empty."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        return self._items.popleft()
 
     def peek_next_request(self) -> RestorationRequest | None:
         """Return the next request without removing it, or None if empty."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        return self._items[0]
 
     def is_empty(self) -> bool:
         """Return True if the queue has no requests."""
-        raise NotImplementedError
+        return len(self._items) == 0
 
     def size(self) -> int:
         """Return the number of queued requests."""
-        raise NotImplementedError
+        return len(self._items)
 
 
 class ArchiveUndoStack:
@@ -110,23 +171,27 @@ class ArchiveUndoStack:
 
     def push_action(self, action: str) -> None:
         """Push an action onto the stack."""
-        raise NotImplementedError
+        self._items.append(action)
 
     def undo_last_action(self) -> str | None:
         """Remove and return the most recent action, or None if empty."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        return self._items.pop()
 
     def peek_last_action(self) -> str | None:
         """Return the most recent action without removing it, or None if empty."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        return self._items[-1]
 
     def is_empty(self) -> bool:
         """Return True if the stack has no actions."""
-        raise NotImplementedError
+        return len(self._items) == 0
 
     def size(self) -> int:
         """Return the number of stored actions."""
-        raise NotImplementedError
+        return len(self._items)
 
 
 class ExhibitNode:
@@ -145,7 +210,15 @@ class ExhibitRoute:
 
     def add_stop(self, stop_name: str) -> None:
         """Add a stop to the end of the route."""
-        raise NotImplementedError
+        new_node = ExhibitNode(stop_name)
+        if self.head is None:
+            self.head = new_node
+            return
+        # Walk to the last node
+        current = self.head
+        while current.next is not None:
+            current = current.next
+        current.next = new_node
 
     def remove_stop(self, stop_name: str) -> bool:
         """Remove the first matching stop.
@@ -153,27 +226,57 @@ class ExhibitRoute:
         Return True if a stop was removed.
         Return False if the stop does not exist.
         """
-        raise NotImplementedError
+        if self.head is None:
+            return False
+
+        # Special case: removing the head node
+        if self.head.stop_name == stop_name:
+            self.head = self.head.next
+            return True
+
+        # Walk the list looking for the stop
+        current = self.head
+        while current.next is not None:
+            if current.next.stop_name == stop_name:
+                current.next = current.next.next
+                return True
+            current = current.next
+
+        return False
 
     def list_stops(self) -> list[str]:
         """Return the route as a list of stop names in order."""
-        raise NotImplementedError
+        stops: list[str] = []
+        current = self.head
+        while current is not None:
+            stops.append(current.stop_name)
+            current = current.next
+        return stops
 
     def count_stops(self) -> int:
         """Return the number of stops in the route."""
-        raise NotImplementedError
+        count = 0
+        current = self.head
+        while current is not None:
+            count += 1
+            current = current.next
+        return count
 
 
 def count_artifacts_by_category(artifacts: list[Artifact]) -> dict[str, int]:
     """Return a dictionary counting artifacts in each category."""
-    raise NotImplementedError
-
+    counts: dict[str, int] = {}
+    for artifact in artifacts:
+        if artifact.category in counts:
+            counts[artifact.category] += 1
+        else:
+            counts[artifact.category] = 1
+    return counts
 
 
 def unique_rooms(artifacts: list[Artifact]) -> set[str]:
     """Return a set of all rooms used by the given artifacts."""
-    raise NotImplementedError
-
+    return {artifact.room for artifact in artifacts}
 
 
 def sort_artifacts_by_age(
@@ -185,8 +288,7 @@ def sort_artifacts_by_age(
     If descending is False, sort from youngest to oldest.
     If descending is True, sort from oldest to youngest.
     """
-    raise NotImplementedError
-
+    return sorted(artifacts, key=lambda a: a.age, reverse=descending)
 
 
 def linear_search_by_name(
@@ -194,10 +296,91 @@ def linear_search_by_name(
     name: str,
 ) -> Artifact | None:
     """Return the first artifact with an exact matching name, or None."""
-    raise NotImplementedError
-
+    for artifact in artifacts:
+        if artifact.name == name:
+            return artifact
+    return None
 
 
 def demo_museum_night() -> None:
     """Run a small integration demo showing the system working together."""
-    raise NotImplementedError
+    print("=== Moonlight Museum After Dark ===\n")
+
+    # --- Create 8 artifacts ---
+    artifacts = [
+        Artifact(40, "Cursed Mirror",   "mirror",  220, "North Hall"),
+        Artifact(20, "Clockwork Bird",  "machine",  80, "Workshop"),
+        Artifact(60, "Whispering Map",  "paper",   140, "Archive"),
+        Artifact(10, "Glowing Key",     "metal",    35, "Vault"),
+        Artifact(30, "Moon Dial",       "device",  120, "North Hall"),
+        Artifact(50, "Silver Mask",     "costume", 160, "Gallery"),
+        Artifact(70, "Lantern Jar",     "glass",    60, "Gallery"),
+        Artifact(25, "Ink Compass",     "device",  120, "Archive"),
+    ]
+
+    # --- Build BST ---
+    bst = ArtifactBST()
+    for artifact in artifacts:
+        bst.insert(artifact)
+
+    print("--- BST Traversals ---")
+    print("Inorder IDs:", bst.inorder_ids())
+    print("Preorder IDs:", bst.preorder_ids())
+    print("Postorder IDs:", bst.postorder_ids())
+
+    # --- Search ---
+    print("\n--- BST Search ---")
+    found = bst.search_by_id(50)
+    print(f"Search for ID 50: {found.name if found else 'Not found'}")
+    missing = bst.search_by_id(999)
+    print(f"Search for ID 999: {'Not found' if missing is None else missing.name}")
+
+    # --- Restoration queue ---
+    print("\n--- Restoration Queue ---")
+    queue = RestorationQueue()
+    queue.add_request(RestorationRequest(40, "Polish cracked frame"))
+    queue.add_request(RestorationRequest(20, "Oil the wing gears"))
+    queue.add_request(RestorationRequest(60, "Flatten folded corner"))
+    print(f"Next restoration request: {queue.peek_next_request().description}")
+    processed = queue.process_next_request()
+    print(f"Processed: {processed.description}")
+    print(f"Queue size after processing: {queue.size()}")
+
+    # --- Undo stack ---
+    print("\n--- Archive Undo Stack ---")
+    stack = ArchiveUndoStack()
+    stack.push_action("Added Cursed Mirror to archive")
+    stack.push_action("Queued Clockwork Bird repair")
+    stack.push_action("Removed Secret Vault stop")
+    print(f"Top of stack: {stack.peek_last_action()}")
+    undone = stack.undo_last_action()
+    print(f"Undo action: {undone}")
+    print(f"Stack size after undo: {stack.size()}")
+
+    # --- Exhibit route ---
+    print("\n--- Exhibit Route ---")
+    route = ExhibitRoute()
+    route.add_stop("Entrance Hall")
+    route.add_stop("Mirror Room")
+    route.add_stop("Clockwork Gallery")
+    route.add_stop("Map Archive")
+    route.add_stop("Vault Exit")
+    print(f"Exhibit route: {route.list_stops()}")
+    route.remove_stop("Map Archive")
+    print(f"After removing 'Map Archive': {route.list_stops()}")
+    print(f"Total stops: {route.count_stops()}")
+
+    # --- Reports ---
+    print("\n--- Museum Reports ---")
+    counts = count_artifacts_by_category(artifacts)
+    print(f"Category counts: {counts}")
+    rooms = unique_rooms(artifacts)
+    print(f"Unique rooms: {sorted(rooms)}")
+
+    sorted_asc = sort_artifacts_by_age(artifacts)
+    print(f"Sorted by age (youngest first): {[a.name for a in sorted_asc]}")
+
+    found_by_name = linear_search_by_name(artifacts, "Whispering Map")
+    print(f"Search by name 'Whispering Map': {found_by_name.name if found_by_name else 'Not found'}")
+
+    print("\n=== Demo complete ===")

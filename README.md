@@ -1,157 +1,144 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/tfm_-hwX)
 # Project 2: Moonlight Museum After Dark
 
-## Team information
-- Team name:
-- Members:
-- Repository name:
+**Course:** Data Structures (Python)
+**Team member:** Dipesh Chaulagain
 
 ---
 
-## Project summary
-Write 2-4 sentences explaining what your museum system does.
+## 1. Team Information
 
-Example starters:
-- Our project builds a system for organizing strange museum artifacts after dark.
-- The system uses multiple data structures to manage artifacts, requests, routes, and reports.
-
----
-
-## Feature checklist
-Mark each item when it is working.
-
-### Core structures
-- [ ] `Artifact` class/record
-- [ ] `ArtifactBST`
-- [ ] `RestorationQueue`
-- [ ] `ArchiveUndoStack`
-- [ ] `ExhibitRoute` singly linked list
-
-### BST features
-- [ ] insert artifact
-- [ ] search by ID
-- [ ] preorder traversal
-- [ ] inorder traversal
-- [ ] postorder traversal
-- [ ] duplicate IDs ignored
-
-### Queue features
-- [ ] add request
-- [ ] process next request
-- [ ] peek next request
-- [ ] empty check
-- [ ] size
-
-### Stack features
-- [ ] push action
-- [ ] undo last action
-- [ ] peek last action
-- [ ] empty check
-- [ ] size
-
-### Linked list features
-- [ ] add stop to end
-- [ ] remove first matching stop
-- [ ] list stops in order
-- [ ] count stops
-
-### Utility/report features
-- [ ] category counts
-- [ ] unique rooms
-- [ ] sort by age
-- [ ] linear search by name
-
-### Integration
-- [ ] `demo_museum_night()`
-- [ ] at least 8 artifacts in demo
-- [ ] demo shows system parts working together
+| Name | GitHub Username |
+|------|----------------|
+| Dipesh Chaulagain | dipeshchaulagain123-ai|
 
 ---
 
-## Design note (150-250 words)
-Explain your main design choices.
+## 2. Project Summary
 
-Things to include:
-- Why a BST makes sense for artifact IDs
-- Why a queue fits restoration requests
-- Why a stack fits undo actions
-- Why a linked list fits an exhibit route
-- How your system is organized across classes and functions
-
-Write your note here:
+This project implements a museum management system for the Moonlight Museum's secret late-night exhibition. The system allows staff to organize strange artifacts, search the archive, process restoration requests, manage an exhibit route, undo recent mistakes, and generate reports. All six required features are fully implemented using appropriate data structures covered in the course up to Week 6.
 
 ---
 
-## Complexity reasoning
-Write short, specific explanations.
+## 3. Feature Checklist
 
-### Example format
-- `ArtifactBST.search_by_id`: `O(h)` where `h` is the tree height, because the search follows one path from the root down.
-- `RestorationQueue.process_next_request`: `O(1)` because deque removal from the front is constant time.
-
-### Your required entries
-- `ArtifactBST.insert`:
-- `ArtifactBST.search_by_id`:
-- `ArtifactBST.inorder_ids`:
-- `RestorationQueue.process_next_request`:
-- `ArchiveUndoStack.undo_last_action`:
-- `ExhibitRoute.remove_stop`:
-- `sort_artifacts_by_age`:
-- `linear_search_by_name`:
+- [x] **Artifact Archive BST** — insert, search by ID, inorder/preorder/postorder traversal, duplicate handling
+- [x] **Restoration Request Queue** — add, process, peek, is_empty, size
+- [x] **Archive Undo Stack** — push, undo, peek, is_empty, size
+- [x] **Exhibit Route Linked List** — add stop, remove stop, list stops, count stops
+- [x] **Museum Reports & Utilities** — count by category, unique rooms, sort by age, linear search by name
+- [x] **Integration Demo** — `demo_museum_night()` showing all features working together
 
 ---
 
-## Edge-case checklist
-Explain how your code handles each case.
+## 4. Design Note
 
-### BST
-- [ ] insert into empty tree
-- [ ] search for missing ID
-- [ ] empty traversals
-- [ ] duplicate ID
+The BST was chosen for the artifact archive because it allows efficient search, insert, and sorted traversal all in one structure. Artifacts are keyed by `artifact_id` (an integer), which makes BST comparison straightforward. Duplicate IDs are silently ignored and return `False`, which prevents accidental overwrites of real museum records.
 
-### Queue
-- [ ] process empty queue
-- [ ] peek empty queue
+The restoration queue uses `collections.deque` internally because deque provides O(1) append to the right and O(1) pop from the left, making it ideal for FIFO behavior. A plain Python list would work for `append`, but `list.pop(0)` is O(n) due to shifting — deque avoids this entirely.
 
-### Stack
-- [ ] undo empty stack
-- [ ] peek empty stack
+The undo stack uses a plain Python list because list `append` and `pop` from the end are both O(1), which is exactly what a LIFO stack needs. No extra memory or wrapping is required.
 
-### Exhibit route linked list
-- [ ] empty route
-- [ ] remove missing stop
-- [ ] remove first stop
-- [ ] remove middle stop
-- [ ] remove last stop
-- [ ] one-stop route
+The exhibit route uses a singly linked list because the route is traversed in order and stops can be inserted or removed without shifting elements. Each node holds a stop name and a pointer to the next node. Removal handles three cases: removing the head, a middle node, and the last node.
 
-### Reports
-- [ ] empty artifact list
-- [ ] repeated categories
-- [ ] repeated rooms
-- [ ] missing artifact name
-- [ ] same-age artifacts
+Helper functions use built-in Python tools: a dict for category counting, a set comprehension for unique rooms, `sorted()` with a lambda key for age sorting, and a simple loop for linear search.
 
 ---
 
-## Demo plan / how to run
-Explain how someone should run your project.
+## 5. Complexity Reasoning
 
-Example:
+| Operation | Data Structure | Time Complexity | Reason |
+|-----------|---------------|-----------------|--------|
+| BST insert | Binary Search Tree | O(h) average | Traverse left/right by ID comparison; h = height |
+| BST search | Binary Search Tree | O(h) average | Same traversal logic as insert |
+| BST traversal | Binary Search Tree | O(n) | Every node visited exactly once |
+| Queue add / process | deque | O(1) | deque append/popleft are constant time |
+| Stack push / undo | list | O(1) | list append/pop from end are constant time |
+| Linked list add stop | Singly linked list | O(n) | Must walk to the end to append |
+| Linked list remove stop | Singly linked list | O(n) | Must walk to find the matching node |
+| Count by category | dict | O(n) | Single pass through artifact list |
+| Unique rooms | set | O(n) | Single pass using set comprehension |
+| Sort by age | sorted() | O(n log n) | Python's Timsort algorithm |
+| Linear search by name | list | O(n) | Worst case checks every artifact |
+
+> Note: BST height h = O(log n) for a balanced tree and O(n) worst case for a sorted insertion order.
+
+---
+
+## 6. Edge-Case Checklist
+
+**BST:**
+- [x] Insert into empty tree
+- [x] Search in empty tree returns None
+- [x] Search for missing ID returns None
+- [x] Duplicate ID is ignored, returns False, original artifact preserved
+- [x] All traversals on empty tree return empty lists
+
+**Restoration Queue:**
+- [x] Process on empty queue returns None
+- [x] Peek on empty queue returns None
+- [x] Peek does not remove the item
+- [x] FIFO order confirmed across multiple requests
+
+**Undo Stack:**
+- [x] Undo on empty stack returns None
+- [x] Peek on empty stack returns None
+- [x] Peek does not remove the item
+- [x] LIFO order confirmed across multiple actions
+
+**Exhibit Route (Linked List):**
+- [x] Empty route returns empty list and count 0
+- [x] Remove from empty route returns False
+- [x] Remove missing stop returns False
+- [x] Remove first (head) node
+- [x] Remove middle node
+- [x] Remove last node
+- [x] Remove only node leaves empty route
+
+**Utility Functions:**
+- [x] Empty artifact list returns empty dict / empty set / empty list / None
+- [x] Repeated categories counted correctly
+- [x] Repeated rooms deduplicated in set
+- [x] Artifacts with the same age handled correctly by sort
+- [x] Missing name in linear search returns None
+
+---
+
+## 7. Demo Plan / How to Run
+
+### Run the full test suite
+
+Make sure you are inside the project folder, then run:
+
 ```bash
-pytest -q
+python -m pytest -q
+```
+
+Expected output:
+```
+38 passed in 0.XX s
+```
+
+### Run the demo function
+
+Open a Python shell from the project folder:
+
+```bash
 python -c "from src.project import demo_museum_night; demo_museum_night()"
 ```
 
-Write your steps here:
+The demo will print BST traversal results, search results, restoration queue processing, undo stack operations, exhibit route management, and category/room reports.
+
+### Requirements
+
+- Python 3.11 or higher
+- No third-party packages required (stdlib only)
+- `pytest` for running tests (`pip install pytest`)
 
 ---
 
-## Assistance & sources
-This section is required.
+## 8. Assistance & Sources
 
-- AI used? (Y/N)
-- What it helped with:
-- Non-course sources used:
-- Links:
+- Python official documentation: `collections.deque`, `dataclasses`, `sorted()`
+- Course lecture notes and slides (Weeks 1–6)
+- Project brief: `PROJECT_2_BRIEF.md`
+- AI assistant (Claude by Anthropic) used to help implement and verify the code
